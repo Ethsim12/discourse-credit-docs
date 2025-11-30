@@ -85,9 +85,9 @@ after_initialize do
       )
     rescue CreditsService::NotEnoughCreditsError
       # Block the download with 403 Forbidden
-      render plain: "❌ You do not have enough credits to download this document.", status: :forbidden
+      render plain: "You do not have enough credits to download this document.", status: :forbidden
     end
   end
 
-  Rails.logger.info("💳 Credit Docs plugin initialized")
+  Rails.logger.info("Credit Docs plugin initialized")
 end
