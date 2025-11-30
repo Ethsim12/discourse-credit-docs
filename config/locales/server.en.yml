@@ -1,0 +1,12 @@
+en:
+  site_settings:
+    credit_docs_enabled: "Enable Credit Docs plugin"
+    credit_docs_default_cost: "Default credit cost per gated document"
+    credit_docs_default_reward: "Default credits awarded per approved document"
+    credit_docs_min_trust_level_to_download: "Minimum trust level to download gated documents"
+    credit_docs_allow_free_for_group: "Group with free access to all gated documents"
+
+  admin_js:
+    plugins:
+      credit_docs:
+        title: "Credit Docs"
