@@ -1,0 +1,38 @@
+plugins:
+  credit_docs_enabled:
+    default: true
+    client: true
+
+  credit_docs_default_cost:
+    default: 1
+    client: true
+    type: integer
+    description:
+      en: "Default number of credits required to unlock a gated document."
+
+  credit_docs_default_reward:
+    default: 1
+    client: false
+    type: integer
+    description:
+      en: "Default number of credits awarded when a user uploads an approved document."
+
+  credit_docs_min_trust_level_to_download:
+    default: 0
+    client: true
+    type: enum
+    choices:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+    description:
+      en: "Minimum trust level required to attempt unlocking or downloading a gated document."
+
+  credit_docs_allow_free_for_group:
+    default: ""
+    client: true
+    type: group
+    description:
+      en: "Users in this group can access all gated documents without spending credits."
