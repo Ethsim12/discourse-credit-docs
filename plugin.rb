@@ -47,5 +47,47 @@ after_initialize do
     )
   end
 
+  # Extend the DownloadController to require credits if attachment is gated
+  require_dependency 'download_controller'
+
+  class ::DownloadController
+    before_action :check_credit_docs, only: [:show]
+
+    def check_credit_docs
+      return unless SiteSetting.credit_docs_enabled
+      return unless current_user.present?
+
+      upload = Upload.find_by(id: params[:id])
+      return unless upload.present?
+
+      # Check if this upload is gated
+      doc = CreditDocument.find_by(upload_id: upload.id)
+      return if doc.blank? || doc.free? # Not gated or 0 cost
+
+      # Uploader themselves should not pay
+      return if current_user.id == doc.uploader_id
+
+      # Optional: bypass if user is staff or in free-access group
+      free_group_name = SiteSetting.credit_docs_allow_free_for_group
+      if current_user.staff? || (free_group_name.present? &&
+          Group.find_by(name: free_group_name)&.users&.exists?(id: current_user.id))
+        return
+      end
+
+      # Attempt to spend credits
+      CreditsService.spend!(
+        current_user,
+        doc.cost,
+        tx_type: "download_cost",
+        upload: upload,
+        post: doc.post,
+        metadata: { reason: "Attempted gated download" }
+      )
+    rescue CreditsService::NotEnoughCreditsError
+      # Block the download with 403 Forbidden
+      render plain: "❌ You do not have enough credits to download this document.", status: :forbidden
+    end
+  end
+
   Rails.logger.info("💳 Credit Docs plugin initialized")
 end
