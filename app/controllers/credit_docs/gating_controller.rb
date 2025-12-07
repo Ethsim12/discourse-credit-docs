@@ -1,19 +1,19 @@
-module CreditDocs
-  class GatingController < ::ApplicationController
-    requires_plugin "discourse-credit-docs"
-    before_action :ensure_staff
+def update
+  upload = Upload.find(params[:upload_id])
 
-    def update
-      upload = Upload.find(params[:upload_id])
-      cost = params[:cost].to_i
+  cost = params[:cost].to_i
+  if cost.negative?
+    return render_json_error("cost must be >= 0", status: 422)
+  end
 
-      doc = CreditDocument.find_or_initialize_by(upload_id: upload.id)
-      doc.cost = cost
-      doc.uploader_id ||= upload.user_id
-      doc.post_id ||= upload.post_id
-      doc.save!
+  doc = CreditDocument.find_or_initialize_by(upload_id: upload.id)
+  doc.cost = cost
+  doc.uploader_id ||= upload.user_id
+  doc.post_id ||= upload.post_id
 
-      render json: success_json
-    end
+  if doc.save
+    render json: success_json
+  else
+    render_json_error(doc)
   end
 end
