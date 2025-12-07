@@ -80,7 +80,7 @@ When a gated upload is downloaded:
            cd: $home
            cmd:
              - git clone https://github.com/Ethsim12/discourse-credit-docs.git
-```
+   ```
 
 2. Rebuild the container:
 
