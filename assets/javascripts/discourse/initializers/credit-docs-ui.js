@@ -10,12 +10,12 @@ export default {
         return;
       }
 
-      // Ensure serializer field exists
+      // Make sure the serializer field exists
       if (typeof currentUser.credit_balance === "undefined") {
         return;
       }
 
-      // Make it reactive for templates / connectors
+      // Ensure it's an Ember property so templates can react to it
       currentUser.set("credit_balance", currentUser.credit_balance);
     });
   },
