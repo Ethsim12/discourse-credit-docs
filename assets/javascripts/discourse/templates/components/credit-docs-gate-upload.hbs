@@ -1,0 +1,44 @@
+{{!--
+  assets/javascripts/discourse/templates/components/credit-docs-gate-upload.hbs
+--}}
+
+{{#if this.upload}}
+  <div class="credit-docs-gate-upload">
+    <label class="credit-docs-gate-label">
+      {{i18n "credit_docs.gate_label" default="Gate (credits)"}}
+    </label>
+
+    <input
+      type="number"
+      min="0"
+      class="credit-docs-gate-input"
+      value={{this.cost}}
+      {{on "input" this.updateCost}}
+    />
+
+    <button
+      type="button"
+      class="btn btn-small credit-docs-gate-apply"
+      disabled={{this.disabled}}
+      {{on "click" this.applyGate}}
+    >
+      {{#if this.saving}}
+        {{i18n "credit_docs.gate_saving" default="Saving…"}}
+      {{else}}
+        {{i18n "credit_docs.gate_apply" default="Apply"}}
+      {{/if}}
+    </button>
+
+    {{#if this.saved}}
+      <span class="credit-docs-gate-status success">
+        {{i18n "credit_docs.gate_saved" default="Saved"}}
+      </span>
+    {{/if}}
+
+    {{#if this.errorMessage}}
+      <span class="credit-docs-gate-status error">
+        {{this.errorMessage}}
+      </span>
+    {{/if}}
+  </div>
+{{/if}}
