@@ -1,44 +1,23 @@
+// assets/javascripts/discourse/initializers/credit-docs-composer.js
+
 import { withPluginApi } from "discourse/lib/plugin-api";
-import { ajax } from "discourse/lib/ajax";
 
 export default {
   name: "credit-docs-composer",
 
   initialize() {
-    withPluginApi("1.8.0", (api) => {
-
-      api.decorateWidget("composer-upload:after", (helper, attrs) => {
-        const upload = attrs && attrs.upload;
-        if (!upload) return;
-
-        return helper.h("div.credit-gate-controls", [
-          helper.h("label", "Gate (credits):"),
-          helper.h("input.credit-cost", {
-            type: "number",
-            min: 0,
-            value: upload.creditCost || 1,
-            onchange(e) {
-              upload.creditCost = parseInt(e.target.value, 10);
-            },
-          }),
-
-          helper.h(
-            "button.credit-gate-btn",
-            {
-              onclick() {
-                ajax("/credit-docs/gate", {
-                  method: "PUT",
-                  data: {
-                    upload_id: upload.id,
-                    cost: upload.creditCost,
-                  },
-                }).then(() => alert("Updated credit cost"));
-              },
-            },
-            "Apply"
-          ),
-        ]);
-      });
+    withPluginApi("1.8.0", () => {
+      // NOTE:
+      // The old composer upload UI for gating documents used the
+      // deprecated widgets API (api.decorateWidget("composer-upload:after", …)).
+      //
+      // That code has been removed to avoid the "widgets decommissioned"
+      // admin warning. The backend (credits, gating on download, etc.)
+      // still works, but there is currently no composer UI to set
+      // per-upload costs.
+      //
+      // A future version can replace this with a Glimmer component
+      // mounted via a modern plugin outlet.
     });
   },
 };
