@@ -13,6 +13,7 @@ after_initialize do
   %w[
     ../app/models/user_credits.rb
     ../app/models/credit_transaction.rb
+    ../app/models/credit_document.rb
     ../app/services/credits_service.rb
   ].each do |path|
     load File.expand_path(path, __FILE__)
@@ -89,6 +90,13 @@ after_initialize do
         if current_user.staff? ||
            (free_group_name.present? &&
              Group.find_by(name: free_group_name)&.users&.exists?(id: current_user.id))
+          return
+        end
+
+        # Optional: enforce minimum trust level
+        min_tl = SiteSetting.credit_docs_min_trust_level.to_i
+        if min_tl > 0 && (current_user.trust_level || 0) < min_tl
+          render plain: "Your trust level is too low to download this document.", status: :forbidden
           return
         end
 
