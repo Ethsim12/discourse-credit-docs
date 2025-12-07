@@ -1,8 +1,5 @@
 {{#if this.currentUser}}
-  {{#if this.currentUser.credit_balance}}
-    <li class="credit-docs-balance">
-      {{i18n "credit_docs.balance_label"}}:
-      {{this.currentUser.credit_balance}}
-    </li>
-  {{/if}}
+  <li class="credit-docs-balance">
+    {{i18n "credit_docs.balance_label"}}: {{this.currentUser.credit_balance}}
+  </li>
 {{/if}}
