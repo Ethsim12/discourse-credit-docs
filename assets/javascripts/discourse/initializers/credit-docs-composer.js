@@ -9,15 +9,18 @@ export default {
     withPluginApi("1.8.0", () => {
       // NOTE:
       // The old composer upload UI for gating documents used the
-      // deprecated widgets API (api.decorateWidget("composer-upload:after", …)).
+      // deprecated widgets API:
       //
-      // That code has been removed to avoid the "widgets decommissioned"
-      // admin warning. The backend (credits, gating on download, etc.)
-      // still works, but there is currently no composer UI to set
-      // per-upload costs.
+      //   api.decorateWidget("composer-upload:after", …)
       //
-      // A future version can replace this with a Glimmer component
-      // mounted via a modern plugin outlet.
+      // That code has been removed to avoid the
+      // "discourse.widgets-decommissioned" admin warning.
+      //
+      // Composer UI is now provided via a Glimmer component mounted
+      // in a plugin outlet (see:
+      // - components/credit-docs-gate-upload.js
+      // - templates/connectors/XXX/credit-docs-gate-upload.hbs)
     });
   },
 };
+
