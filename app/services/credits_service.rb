@@ -1,106 +1,48 @@
 # frozen_string_literal: true
 
-class CreditsService
-  class NotEnoughCreditsError < StandardError; end
-  class InvalidAmountError < StandardError; end
+class UserCredits < ActiveRecord::Base
+  self.table_name = "user_credits"
 
-  attr_reader :user
+  belongs_to :user
 
-  def initialize(user)
-    @user = user
-  end
+  validates :balance, numericality: { greater_than_or_equal_to: 0 }
 
-  # Convenience: get or create a credits row for this user
-  def user_credits
-    UserCredits.ensure_for(user)
-  end
-
-  # Return current balance (always safe to call)
-  def balance
-    user_credits.balance
-  end
-
-  #
-  # Public API
-  #
-
-  # Award credits to the user.
-  #
-  # amount   - positive Integer number of credits to add
-  # tx_type  - short String label, e.g. "earn", "admin_adjust"
-  # upload   - optional Upload record (if tied to a document)
-  # post     - optional Post record (if tied to a specific post)
-  # metadata - optional Hash for extra info (reason, source, etc.)
-  #
-  def award!(amount,
-             tx_type: "earn",
-             upload: nil,
-             post: nil,
-             metadata: {})
-    amount = amount.to_i
-    raise InvalidAmountError, "amount must be positive" if amount <= 0
-
-    UserCredits.transaction do
-      credits = user_credits
-      credits.add_credits(amount)
-
-      CreditTransaction.create!(
-        user: user,
-        tx_type: tx_type,
-        amount: amount,
-        balance_after: credits.balance,
-        upload: upload,
-        post: post,
-        metadata: metadata
-      )
+  # Make sure we always have a row with sensible defaults
+  def self.ensure_for(user)
+    find_or_create_by!(user_id: user.id) do |uc|
+      uc.balance         ||= 0
+      uc.lifetime_earned ||= 0 if uc.respond_to?(:lifetime_earned)
+      uc.lifetime_spent  ||= 0 if uc.respond_to?(:lifetime_spent)
     end
   end
 
-  # Spend credits from the user.
-  #
-  # Raises NotEnoughCreditsError if balance would go negative.
-  #
-  def spend!(amount,
-             tx_type: "spend",
-             upload: nil,
-             post: nil,
-             metadata: {})
+  # Canonical API used by CreditsService
+  def add!(amount)
     amount = amount.to_i
-    raise InvalidAmountError, "amount must be positive" if amount <= 0
+    raise ArgumentError, "amount must be >= 0" if amount.negative?
 
-    UserCredits.transaction do
-      credits = user_credits
-
-      # Use model-level guard to avoid negative balance
-      credits.spend_credits(amount)
-
-      CreditTransaction.create!(
-        user: user,
-        tx_type: tx_type,
-        amount: -amount,              # negative for spending
-        balance_after: credits.balance,
-        upload: upload,
-        post: post,
-        metadata: metadata
-      )
+    attrs = { balance: balance + amount }
+    if respond_to?(:lifetime_earned) && lifetime_earned
+      attrs[:lifetime_earned] = lifetime_earned + amount
     end
 
-    true
-  rescue StandardError => e
-    # Re-map "not enough credits" into a clear error type if you like
-    raise NotEnoughCreditsError, e.message if e.is_a?(StandardError)
-    raise
+    update!(attrs)
   end
 
-  #
-  # Class-level convenience helpers
-  #
+  def subtract!(amount)
+    amount = amount.to_i
+    raise ArgumentError, "amount must be >= 0" if amount.negative?
+    raise CreditsService::NotEnoughCreditsError if amount > balance
 
-  def self.award!(user, amount, **opts)
-    new(user).award!(amount, **opts)
+    attrs = { balance: balance - amount }
+    if respond_to?(:lifetime_spent) && lifetime_spent
+      attrs[:lifetime_spent] = lifetime_spent + amount
+    end
+
+    update!(attrs)
   end
 
-  def self.spend!(user, amount, **opts)
-    new(user).spend!(amount, **opts)
-  end
+  # Backwards-compatible method names
+  alias_method :add_credits, :add!
+  alias_method :spend_credits, :subtract!
 end
